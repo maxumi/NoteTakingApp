@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MauiCrossplatformApp.Interfaces;
+using MauiCrossplatformApp.Data.Interfaces;
 using MauiCrossplatformApp.Models;
 using MauiCrossplatformApp.Views;
 
@@ -13,8 +13,9 @@ public partial class MainPageViewModel : ObservableObject
     public MainPageViewModel(INoteRepository repo)
     {
         _repo = repo;
-        _ = InitialiseAsync();
+        //_ = InitialiseAsync();
     }
+    /*
 
     private async Task InitialiseAsync()
     {
@@ -45,5 +46,5 @@ public partial class MainPageViewModel : ObservableObject
 
         await Shell.Current.GoToAsync(nameof(NotePage),
                                       new() { { "NoteId", note.Id } });
-    }
+    }*/
 }

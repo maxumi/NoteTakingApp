@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using MauiCrossplatformApp.Interfaces;
 using MauiCrossplatformApp.ViewModels;
 
 namespace MauiCrossplatformApp
@@ -11,9 +10,6 @@ namespace MauiCrossplatformApp
             InitializeComponent();
             BindingContext = viewModel;
         }
-
-
-
     }
 
 }

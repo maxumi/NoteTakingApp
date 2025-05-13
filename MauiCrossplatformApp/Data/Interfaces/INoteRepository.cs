@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using MauiCrossplatformApp.Models;
 
-namespace MauiCrossplatformApp.Interfaces
+namespace MauiCrossplatformApp.Data.Interfaces
 {
     public interface INoteRepository
     {
         Task<IEnumerable<Note>> GetAllNotesAsync();
-        Task<Note> GetNoteAsync(Guid id);
+        Task<Note> GetNoteAsync(int id);
         Task SaveNoteAsync(Note note);
-        Task DeleteNoteAsync(Guid id);
+        Task DeleteNoteAsync(int id);
     }
 }
 

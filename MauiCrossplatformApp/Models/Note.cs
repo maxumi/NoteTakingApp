@@ -6,26 +6,27 @@ using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using MauiCrossplatformApp.Data;
+using SQLite;
 
 namespace MauiCrossplatformApp.Models
 {
-    public class Note
+    public class Note : FileSystemEntry
     {
         public Note()
         {
-            Id = Guid.NewGuid();
             CreatedAt = DateTime.UtcNow;
             UpdatedAt = CreatedAt;
         }
 
-        public Guid Id { get; } 
-        public string FolderPath { get; set; } = "/";
-        public string FileName { get; set; } = "Untitled.md";
         public string Content { get; set; } = string.Empty;
+
+
+        [Ignore] // sqlite-net can’t map List<string>
         public List<string> Tags { get; set; } = new();
 
-        public DateTime CreatedAt { get; }
-        public DateTime UpdatedAt { get; private set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
         public void Touch() => UpdatedAt = DateTime.UtcNow;
     }

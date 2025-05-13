@@ -11,7 +11,7 @@
              Text="Read"
              Command="{Binding ToggleReadingCommand}" />
 
-        <ToolbarItem IconImageSource="save.svg" Text="Save" Command="{Binding SaveAsyncCommand}" />
+        <ToolbarItem IconImageSource="save.svg" Text="Save" Command="{Binding SaveCommand}" />
     </ContentPage.ToolbarItems>
 
     <Grid RowDefinitions="Auto,*" Padding="16">
