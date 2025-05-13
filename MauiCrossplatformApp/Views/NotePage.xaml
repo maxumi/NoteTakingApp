@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiCrossplatformApp.Views.NotePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:MauiCrossplatformApp.ViewModels"
+    Title="{Binding Title}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem IconImageSource="book.svg"
+             Text="Read"
+             Command="{Binding ToggleReadingCommand}" />
+
+        <ToolbarItem IconImageSource="save.svg" Text="Save" Command="{Binding SaveAsyncCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <Grid RowDefinitions="Auto,*" Padding="16">
+
+        <Editor Grid.Row="0"
+                x:Name="MarkdownEditor"
+                AutoSize="TextChanges"
+                Text="{Binding NoteContent}"
+                Placeholder="Start typing…"
+                IsVisible="{Binding IsReading, Converter={StaticResource InverseBooleanConverter}}" />
+
+        <WebView Grid.Row="0"
+         IsVisible="{Binding IsReading}">
+            <WebView.Source>
+                <HtmlWebViewSource Html="{Binding RenderedHtml}" />
+            </WebView.Source>
+        </WebView>
+
+    </Grid>
+</ContentPage>
