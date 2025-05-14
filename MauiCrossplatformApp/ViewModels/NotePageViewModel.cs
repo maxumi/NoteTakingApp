@@ -7,8 +7,6 @@ using MauiCrossplatformApp.Models;
 
 namespace MauiCrossplatformApp.ViewModels
 {
-    // Shell will map ?noteId=42 → this property
-    [QueryProperty(nameof(NoteId), "noteId")]
     public partial class NotePageViewModel : ObservableObject
     {
         private readonly INoteRepository _repository;

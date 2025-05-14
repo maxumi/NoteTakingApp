@@ -12,6 +12,8 @@ namespace MauiCrossplatformApp.ViewModels;
 public partial class FileSystemItemViewModel : ObservableObject
 {
     public int Id { get; }
+    [ObservableProperty] 
+    private bool isExpanded = true;
     public string Name { get; }
     public bool IsFolder => Source is Folder;
 

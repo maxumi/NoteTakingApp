@@ -47,5 +47,10 @@ namespace MauiCrossplatformApp.Repositories
         {
             return await _db.Table<Folder>().ToListAsync();
         }
+
+        Task<Note> INoteRepository.AddNoteAsync(string name, string content, int? parentFolderId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

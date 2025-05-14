@@ -25,7 +25,7 @@
                     <toolkit:Expander
                         IsVisible="{Binding IsFolder}"
                         Padding="{Binding Depth, Converter={StaticResource Indent}}"
-                        IsExpanded="True">
+                        IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
 
                         <!-- ❱ Header expects ONE view  -->
                         <toolkit:Expander.Header>
@@ -102,11 +102,21 @@
             <HorizontalStackLayout Grid.Row="3"
                                    Margin="0,12,0,0"
                                    Spacing="28"
-                                   HorizontalOptions="Center">
-                <ImageButton Source="{FontImageSource Glyph='', Size=22}"          Command="{Binding NewNoteCmd}"     BackgroundColor="Transparent"/>
-                <ImageButton Source="{FontImageSource Glyph='✎', Size=20}"           Command="{Binding EditCmd}"        BackgroundColor="Transparent"/>
-                <ImageButton Source="{FontImageSource Glyph='⇅', Size=20}"           Command="{Binding SortCmd}"        BackgroundColor="Transparent"/>
-                <ImageButton Source="{FontImageSource Glyph='⤢', Size=20}"           Command="{Binding ExpandAllCmd}"   BackgroundColor="Transparent"/>
+                                   HorizontalOptions="Center"
+                                   BackgroundColor="Black">
+
+                <!-- add / edit / expand -->
+                <ImageButton Source="{FontImageSource Glyph='', Size=22}"
+                 Command="{Binding NewNoteCommand}"
+                 BackgroundColor="Transparent"/>
+
+                <ImageButton Source="{FontImageSource Glyph='✎', Size=20}"
+                 Command="{Binding EditCommand}"
+                 BackgroundColor="Transparent"/>
+
+                <ImageButton Source="{FontImageSource Glyph='⤢', Size=20}"
+                 Command="{Binding ToggleExpandCollapseCommand}"
+                 BackgroundColor="Transparent"/>
             </HorizontalStackLayout>
 
             <!-- ── vertical guide line ────────────────────────────── -->

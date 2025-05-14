@@ -71,7 +71,10 @@ namespace MauiCrossplatformApp
             });
 
             // 3) Repository & VMs
-            builder.Services.AddScoped<INoteRepository, MockRepo>();
+
+            builder.Services.AddSingleton<INoteRepository, MockRepo>();
+
+
             builder.Services.AddTransient<NotePageViewModel>();
             builder.Services.AddTransient<MainPageViewModel>();
             builder.Services.AddTransient<AppShellViewModel>();

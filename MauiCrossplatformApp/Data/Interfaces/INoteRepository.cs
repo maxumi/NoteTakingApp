@@ -11,6 +11,7 @@ namespace MauiCrossplatformApp.Data.Interfaces
         Task<IEnumerable<Folder>> GetAllFoldersAsync();
         Task<Note> GetNoteAsync(int id);
         Task SaveNoteAsync(Note note);
+        Task<Note> AddNoteAsync(string name, string content, int? parentFolderId = null);
         Task DeleteNoteAsync(int id);
 
     }

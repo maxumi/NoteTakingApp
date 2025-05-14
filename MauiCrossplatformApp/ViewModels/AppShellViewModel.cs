@@ -6,6 +6,7 @@ using MauiCrossplatformApp.Data;
 using MauiCrossplatformApp.Data.Interfaces;
 using MauiCrossplatformApp.Models;
 using MauiCrossplatformApp.ViewModels;
+using MauiCrossplatformApp.Views;
 
 public partial class AppShellViewModel : ObservableObject
 {
@@ -17,6 +18,10 @@ public partial class AppShellViewModel : ObservableObject
     [ObservableProperty]
     private string? searchText;
 
+    [ObservableProperty]
+    private bool expandNext = true;
+    [ObservableProperty] private bool sortAscending = true;
+
     public IAsyncRelayCommand ReloadCommand { get; }
 
     public AppShellViewModel(INoteRepository noteRepo)
@@ -26,6 +31,7 @@ public partial class AppShellViewModel : ObservableObject
 
         _ = ReloadCommand.ExecuteAsync(null);          // initial load
     }
+
 
     /* ───────────────────────── LOAD ───────────────────────── */
     private async Task BuildTreeAsync()
@@ -108,6 +114,45 @@ public partial class AppShellViewModel : ObservableObject
             return keep ? clone : null;
         }
     }
+
+    [RelayCommand]
+    private async Task NewNoteAsync(int? parentFolderId = null)
+    {
+        var note = await _noteRepo.AddNoteAsync("Untitled.md", "", parentFolderId);
+        await Shell.Current.GoToAsync($"{nameof(NotePage)}?noteId={note.Id}");
+        Shell.Current.FlyoutIsPresented = false;
+        await BuildTreeAsync(); // refresh tree
+    }
+
+    [RelayCommand]
+    private async Task EditAsync()
+    {
+        if (Selected is null || Selected.IsFolder) return;
+        await Shell.Current.GoToAsync($"NotePage?noteId={Selected.Id}");
+        Shell.Current.FlyoutIsPresented = false;
+    }
+
+    [ObservableProperty] private FileSystemItemViewModel? selected;
+
+
+    [RelayCommand]
+    private void ToggleExpandCollapse()
+    {
+        foreach (var root in _snapshot)
+            SetExpandedRecursive(root, ExpandNext);   // expand or collapse
+
+        ApplyFilter();        // repaint tree
+        ExpandNext = !ExpandNext;   // 3️⃣ flip for next tap
+    }
+    private static void SetExpandedRecursive(FileSystemItemViewModel n, bool val)
+    {
+        if (n.IsFolder)
+        {
+            n.IsExpanded = val;
+            foreach (var c in n.Children) SetExpandedRecursive(c, val);
+        }
+    }
+
 
     /* ──────────────────────── helpers ─────────────────────── */
     private static FileSystemItemViewModel CloneDeep(FileSystemItemViewModel src)
