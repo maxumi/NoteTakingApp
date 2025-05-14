@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MauiCrossplatformApp.Data;
 using MauiCrossplatformApp.Data.Interfaces;
 using MauiCrossplatformApp.Models;
 using SQLite;
@@ -40,6 +41,11 @@ namespace MauiCrossplatformApp.Repositories
             var note = await GetNoteAsync(id);
             if (note != null)
                 await _db.DeleteAsync(note);
+        }
+
+        public async Task<IEnumerable<Folder>> GetAllFoldersAsync()
+        {
+            return await _db.Table<Folder>().ToListAsync();
         }
     }
 }

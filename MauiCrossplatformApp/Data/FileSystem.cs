@@ -19,14 +19,13 @@ namespace MauiCrossplatformApp.Data
 
         [Ignore] // navigation, not a DB column
         public FileSystemEntry? Parent { get; set; }
-
-        [Ignore] // navigation, not a DB column
-        public List<FileSystemEntry> Children { get; set; } = new();
     }
 
     public class Folder : FileSystemEntry
     {
-        // No extra properties needed
+        [Ignore] // navigation, not a DB column
+
+        public List<FileSystemEntry> Children { get; set; } = new();
     }
 
 }

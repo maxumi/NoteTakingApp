@@ -1,20 +1,127 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <Shell
     x:Class="MauiCrossplatformApp.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:views="clr-namespace:MauiCrossplatformApp.Views"
+    xmlns:vm="clr-namespace:MauiCrossplatformApp.ViewModels"
     xmlns:local="clr-namespace:MauiCrossplatformApp"
-    Shell.FlyoutBehavior="Flyout"
-    Title="MauiCrossplatformApp">
+    xmlns:conv="clr-namespace:MauiCrossplatformApp.Converters"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    Title="Note App"
+    FlyoutBehavior="Flyout">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <!-- 🔹 shared resources -->
+    <Shell.Resources>
+        <ResourceDictionary>
+            <conv:DepthToIndentConverter  x:Key="Indent"     />
+            <conv:InverseBooleanConverter x:Key="InvertBool" />
+            <conv:BoolToArrowConverter x:Key="BoolToArrowConverter" />
+            <!-- recursive item template -->
+            <DataTemplate x:Key="FileSystemItemTemplate"
+                          x:DataType="vm:FileSystemItemViewModel">
+                <VerticalStackLayout>
 
-    <ShellContent
-        Title="Note"
-        ContentTemplate="{DataTemplate views:NotePage}" />
+                    <!-- folders -->
+                    <toolkit:Expander
+                        IsVisible="{Binding IsFolder}"
+                        Padding="{Binding Depth, Converter={StaticResource Indent}}"
+                        IsExpanded="True">
+
+                        <!-- ❱ Header expects ONE view  -->
+                        <toolkit:Expander.Header>
+                            <HorizontalStackLayout Spacing="6">
+                                <!-- folder name -->
+                                <Label Text="{Binding Name}"
+                                FontAttributes="Bold" />
+
+                                <!-- chevron: › or ⌄ -->
+                                <Label FontSize="16"
+                                  Text="{Binding Path=IsExpanded,
+                                  Source={RelativeSource AncestorType={x:Type toolkit:Expander}},
+                                  Converter={StaticResource BoolToArrowConverter}}" />
+                            </HorizontalStackLayout>
+                        </toolkit:Expander.Header>
+
+                        <!-- children -->
+                        <VerticalStackLayout
+                            BindableLayout.ItemsSource="{Binding Children}"
+                            BindableLayout.ItemTemplate="{StaticResource FileSystemItemTemplate}" />
+                    </toolkit:Expander>
+
+
+                    <!-- notes -->
+                    <Button
+                        Text="{Binding Name}"
+                        TextColor="{AppThemeBinding Light=Black, Dark=White}"
+                        IsVisible="{Binding IsFolder, Converter={StaticResource InvertBool}}"
+                        Padding="{Binding Depth, Converter={StaticResource Indent}}"
+                        Command="{Binding OpenCommand}"
+                        BackgroundColor="Transparent"
+                        HorizontalOptions="Start" />
+                </VerticalStackLayout>
+            </DataTemplate>
+        </ResourceDictionary>
+    </Shell.Resources>
+
+    <!-- 🔹 custom fly‑out layout -->
+    <Shell.FlyoutContent>
+        <Grid Padding="16" RowSpacing="0">
+
+            <!-- rows: 0 header | 1 search | 2 tree | 3 toolbar -->
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- ── header ─────────────────────────────────────────── -->
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                <Label Text="Note App"
+                       FontSize="22"
+                       FontAttributes="Bold"/>
+                <ImageButton Source="{FontImageSource Glyph='⚙', Size=22}"
+                             Command="{Binding OpenSettingsCmd}"
+                             BackgroundColor="Transparent"/>
+            </Grid>
+
+            <!-- ── search box ─────────────────────────────────────── -->
+            <Entry Grid.Row="1"
+                   Placeholder="Search Notes"
+                   ClearButtonVisibility="WhileEditing"
+                   Margin="0,0,0,12"
+                   Text="{Binding SearchText, Mode=TwoWay}"/>
+
+            <!-- ── tree view ──────────────────────────────────────── -->
+            <CollectionView Grid.Row="2"
+                            ItemsSource="{Binding TreeItems}"
+                            ItemTemplate="{StaticResource FileSystemItemTemplate}"
+                            SelectionMode="None"/>
+
+            <!-- ── bottom toolbar ─────────────────────────────────── -->
+            <HorizontalStackLayout Grid.Row="3"
+                                   Margin="0,12,0,0"
+                                   Spacing="28"
+                                   HorizontalOptions="Center">
+                <ImageButton Source="{FontImageSource Glyph='', Size=22}"          Command="{Binding NewNoteCmd}"     BackgroundColor="Transparent"/>
+                <ImageButton Source="{FontImageSource Glyph='✎', Size=20}"           Command="{Binding EditCmd}"        BackgroundColor="Transparent"/>
+                <ImageButton Source="{FontImageSource Glyph='⇅', Size=20}"           Command="{Binding SortCmd}"        BackgroundColor="Transparent"/>
+                <ImageButton Source="{FontImageSource Glyph='⤢', Size=20}"           Command="{Binding ExpandAllCmd}"   BackgroundColor="Transparent"/>
+            </HorizontalStackLayout>
+
+            <!-- ── vertical guide line ────────────────────────────── -->
+            <BoxView Grid.Row="0" Grid.RowSpan="4"
+                     HorizontalOptions="End"
+                     WidthRequest="1"
+                     BackgroundColor="{AppThemeBinding Light=#CCCCCC, Dark=#444444}"/>
+        </Grid>
+    </Shell.FlyoutContent>
+
+    <!-- 🔹 main section so hamburger & back work -->
+    <FlyoutItem Title="Home" Icon="home.png">
+        <ShellContent
+            Route="MainPage"
+            ContentTemplate="{DataTemplate local:MainPage}" />
+    </FlyoutItem>
 
 </Shell>

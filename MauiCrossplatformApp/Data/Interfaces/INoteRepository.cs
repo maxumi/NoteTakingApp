@@ -8,9 +8,11 @@ namespace MauiCrossplatformApp.Data.Interfaces
     public interface INoteRepository
     {
         Task<IEnumerable<Note>> GetAllNotesAsync();
+        Task<IEnumerable<Folder>> GetAllFoldersAsync();
         Task<Note> GetNoteAsync(int id);
         Task SaveNoteAsync(Note note);
         Task DeleteNoteAsync(int id);
+
     }
 }
 

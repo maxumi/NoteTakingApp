@@ -7,6 +7,7 @@ using MauiCrossplatformApp.ViewModels;
 using Microsoft.Extensions.Logging;
 using SQLite;
 using System.Diagnostics;
+using CommunityToolkit.Maui;
 namespace MauiCrossplatformApp
 {
     public static class MauiProgram
@@ -16,6 +17,7 @@ namespace MauiCrossplatformApp
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -69,10 +71,13 @@ namespace MauiCrossplatformApp
             });
 
             // 3) Repository & VMs
-            builder.Services.AddScoped<INoteRepository, NoteRepository>();
+            builder.Services.AddScoped<INoteRepository, MockRepo>();
             builder.Services.AddTransient<NotePageViewModel>();
             builder.Services.AddTransient<MainPageViewModel>();
             builder.Services.AddTransient<AppShellViewModel>();
+            builder.Services.AddTransient<FileSystemItemViewModel>();
+
+            builder.Services.AddSingleton<AppShell>();
 
             return builder.Build();
         }
