@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MauiCrossplatformApp.Data;
 using MauiCrossplatformApp.Data.Interfaces;
 using MauiCrossplatformApp.Models;
+using MauiCrossplatformApp.Services;
 using SQLite;
 
 namespace MauiCrossplatformApp.Repositories

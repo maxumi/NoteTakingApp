@@ -5,160 +5,122 @@ using CommunityToolkit.Mvvm.Input;
 using MauiCrossplatformApp.Data;
 using MauiCrossplatformApp.Data.Interfaces;
 using MauiCrossplatformApp.Models;
+using MauiCrossplatformApp.Services;
 using MauiCrossplatformApp.ViewModels;
 using MauiCrossplatformApp.Views;
 
 public partial class AppShellViewModel : ObservableObject
 {
-    private readonly INoteRepository _noteRepo;
-    private readonly List<FileSystemItemViewModel> _snapshot = new();
+    private readonly INoteRepository _repo;
+    private readonly INoteService _service;
+    // Master List, it holds all currently loaded notes and folders
+    private readonly List<FileSystemItemViewModel> _roots = new();
 
-    public ObservableCollection<FileSystemItemViewModel> TreeItems { get; } = new();
+    // Filtered List, it holds the currently displayed notes and folders
+    public ObservableCollection<FileSystemItemViewModel> TreeItems { get; } = [];
 
-    [ObservableProperty]
-    private string? searchText;
-
-    [ObservableProperty]
-    private bool expandNext = true;
+    [ObservableProperty] private string? searchText;
+    [ObservableProperty] private bool expandNext = true;
     [ObservableProperty] private bool sortAscending = true;
-
+    [ObservableProperty] private FileSystemItemViewModel? selected;
     public IAsyncRelayCommand ReloadCommand { get; }
 
-    public AppShellViewModel(INoteRepository noteRepo)
+    public AppShellViewModel(INoteRepository repo, INoteService service)
     {
-        _noteRepo = noteRepo;
-        ReloadCommand = new AsyncRelayCommand(BuildTreeAsync);
-
-        _ = ReloadCommand.ExecuteAsync(null);          // initial load
+        _repo = repo;
+        _service = service;
+        // Only uses this for the initial load. Otherwise i need to declare Constructor async.
+        ReloadCommand = new AsyncRelayCommand(LoadAsync);
+        _ = ReloadCommand.ExecuteAsync(null);
     }
 
-
-    /* ───────────────────────── LOAD ───────────────────────── */
-    private async Task BuildTreeAsync()
+    // Load all notes and folders from the repository
+    private async Task LoadAsync()
     {
+        _roots.Clear();
         TreeItems.Clear();
 
-        var folders = (await _noteRepo.GetAllFoldersAsync()).ToList();
-        var notes = (await _noteRepo.GetAllNotesAsync()).ToList();
+        // pull the already‐built tree from the API
+        var entries = await _service.GetTreeAsync();
+        foreach (var dto in entries)
+            _roots.Add(new FileSystemItemViewModel(dto));
 
-        // one VM per row
-        var map = folders.Cast<FileSystemEntry>()
-                         .Concat(notes)
-                         .ToDictionary(x => x.Id, x => new FileSystemItemViewModel(x));
-
-        // wire parents
-        foreach (var vm in map.Values.Where(v => v.Source.ParentId is int))
-        {
-            var parent = map[vm.Source.ParentId!.Value];
-            vm.Depth = parent.Depth + 1;
-            parent.Children.Add(vm);
-        }
-
-        // root = no parent  (folders after loose notes)
-        var roots = notes.Where(n => n.ParentId == null).Select(n => map[n.Id])
-                   .Concat(folders.Where(f => f.ParentId == null).Select(f => map[f.Id]));
-
-        foreach (var r in roots.OrderBy(r => r.Name))
-            TreeItems.Add(r);
-
-        // keep an immutable snapshot for search
-        _snapshot.Clear();
-        _snapshot.AddRange(TreeItems.Select(CloneDeep));
-
-        ApplyFilter();                   // show first time (SearchText may already be set)
+        RefreshTree();
     }
 
-    /* ───────────────────────── SEARCH ─────────────────────── */
-    partial void OnSearchTextChanged(string _, string __) => ApplyFilter();
+    /* ───────────────────────── search / sort ───────────────────── */
+    partial void OnSearchTextChanged(string _, string __) => RefreshTree();
 
-    private void ApplyFilter()
+    private void RefreshTree()
     {
-        TreeItems.Clear();
+        var query = _roots.AsEnumerable();
 
-        if (string.IsNullOrWhiteSpace(SearchText))
-        {
-            foreach (var root in _snapshot)
-                TreeItems.Add(root);
-            return;
-        }
+        if (!string.IsNullOrWhiteSpace(SearchText))
+            query = query.Where(r => ContainsRecursive(r, SearchText!, StringComparison.OrdinalIgnoreCase));
 
-        var term = SearchText!;
+        query = sortAscending
+            ? query.OrderByDescending(n => n.IsFolder).ThenBy(n => n.Name)
+            : query.OrderByDescending(n => n.IsFolder).ThenByDescending(n => n.Name);
 
-        var filtered = _snapshot
-            .Select(root =>
-            {
-                var clone = FilterBranch(root, term, out var keep);
-                return (clone, keep);
-            })
-            .Where(t => t.keep && t.clone is not null)
-            .Select(t => t.clone!);
-
-        foreach (var r in filtered) TreeItems.Add(r);
-
-        // local iterator that clones only matching sub‑branches
-        static FileSystemItemViewModel? FilterBranch(
-            FileSystemItemViewModel src,
-            string term,
-            out bool keep)
-        {
-            keep = src.Name.Contains(term, StringComparison.OrdinalIgnoreCase);
-            var clone = new FileSystemItemViewModel(src.Source!) { Depth = src.Depth };
-
-            foreach (var c in src.Children)
-                if (FilterBranch(c, term, out var ck) is { } child)
-                {
-                    keep |= ck;
-                    if (ck) clone.Children.Add(child);
-                }
-
-            return keep ? clone : null;
-        }
+        TreeItems.ReplaceAll(query);
     }
+
+    private static bool ContainsRecursive(FileSystemItemViewModel n, string term, StringComparison cmp)
+        => n.Name.Contains(term, cmp) || n.Children.Any(c => ContainsRecursive(c, term, cmp));
+
+    #region Commands
 
     [RelayCommand]
     private async Task NewNoteAsync(int? parentFolderId = null)
     {
-        var note = await _noteRepo.AddNoteAsync("Untitled.md", "", parentFolderId);
-        await Shell.Current.GoToAsync($"{nameof(NotePage)}?noteId={note.Id}");
+        var dto = new NoteDto
+        {
+            Name = "Untitled.md",
+            Content = "",
+            ParentId = parentFolderId
+        };
+
+        var created = await _service.CreateNoteAsync(dto);
+        await Shell.Current.GoToAsync($"{nameof(NotePage)}?noteId={created.Id}");
         Shell.Current.FlyoutIsPresented = false;
-        await BuildTreeAsync(); // refresh tree
+        await LoadAsync();
     }
 
     [RelayCommand]
     private async Task EditAsync()
     {
-        if (Selected is null || Selected.IsFolder) return;
-        await Shell.Current.GoToAsync($"NotePage?noteId={Selected.Id}");
-        Shell.Current.FlyoutIsPresented = false;
+        // WIP
     }
 
-    [ObservableProperty] private FileSystemItemViewModel? selected;
-
+    [RelayCommand]
+    private void ToggleSort()
+    {
+        sortAscending = !sortAscending;
+        RefreshTree();
+    }
 
     [RelayCommand]
     private void ToggleExpandCollapse()
     {
-        foreach (var root in _snapshot)
-            SetExpandedRecursive(root, ExpandNext);   // expand or collapse
-
-        ApplyFilter();        // repaint tree
-        ExpandNext = !ExpandNext;   // 3️⃣ flip for next tap
+        foreach (var r in _roots) SetExpandedRecursive(r, expandNext);
+        expandNext = !expandNext;
+        RefreshTree();
     }
+
+    #endregion
+
     private static void SetExpandedRecursive(FileSystemItemViewModel n, bool val)
     {
-        if (n.IsFolder)
-        {
-            n.IsExpanded = val;
-            foreach (var c in n.Children) SetExpandedRecursive(c, val);
-        }
+        if (!n.IsFolder) return;
+        n.IsExpanded = val;
+        foreach (var c in n.Children) SetExpandedRecursive(c, val);
     }
-
-
-    /* ──────────────────────── helpers ─────────────────────── */
-    private static FileSystemItemViewModel CloneDeep(FileSystemItemViewModel src)
+}
+public static class ObservableCollectionExtensions
+{
+    public static void ReplaceAll<T>(this ObservableCollection<T> col, IEnumerable<T> items)
     {
-        var copy = new FileSystemItemViewModel(src.Source!) { Depth = src.Depth };
-        foreach (var c in src.Children) copy.Children.Add(CloneDeep(c));
-        return copy;
+        col.Clear();
+        foreach (var i in items) col.Add(i);
     }
 }

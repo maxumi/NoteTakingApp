@@ -1,4 +1,6 @@
-﻿namespace MauiCrossplatformApp
+﻿using MauiCrossplatformApp.Services;
+
+namespace MauiCrossplatformApp
 {
     public partial class App : Application
     {

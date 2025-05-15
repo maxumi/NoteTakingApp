@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using SQLite;
 using System.Diagnostics;
 using CommunityToolkit.Maui;
+using MauiCrossplatformApp.Services;
 namespace MauiCrossplatformApp
 {
     public static class MauiProgram
@@ -79,6 +80,7 @@ namespace MauiCrossplatformApp
             builder.Services.AddTransient<MainPageViewModel>();
             builder.Services.AddTransient<AppShellViewModel>();
             builder.Services.AddTransient<FileSystemItemViewModel>();
+            builder.Services.AddTransient<INoteService, NoteService>();
 
             builder.Services.AddSingleton<AppShell>();
 
