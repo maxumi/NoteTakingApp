@@ -10,7 +10,10 @@ namespace MauiCrossplatformApp
             InitializeComponent();
             BindingContext = viewModel;
 
+            // Register routes for navigation
             Routing.RegisterRoute(nameof(NotePage), typeof(NotePage));
+            Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
+
 
         }
     }

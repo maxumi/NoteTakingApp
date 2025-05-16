@@ -15,6 +15,8 @@ namespace NoteApi.Data.Interfaces
         Task<Note> AddNoteAsync(string name, string content, int? parentFolderId = null);
         Task DeleteNoteAsync(int id);
         Task<List<FileSystemEntryDto>> GetFileSystemTreeAsync();
+        Task RenameNoteAsync(int id, string newName);
+
 
     }
 }

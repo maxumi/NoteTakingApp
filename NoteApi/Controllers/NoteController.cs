@@ -48,20 +48,25 @@ namespace NoteApi.Controllers
                 return NotFound();
             }
         }
-
-        // DTO for Create/Update
-        public class NoteDto
+        [HttpPatch("{id:int}/name")]
+        public async Task<IActionResult> RenameNote(int id, [FromBody] string newName)
         {
-            public string Name { get; set; } = "";
-            public string Content { get; set; } = "";
-            public int? ParentFolderId { get; set; }
+            try
+            {
+                await _repo.RenameNoteAsync(id, newName);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
         }
 
         // POST api/note
         [HttpPost]
         public async Task<ActionResult<Note>> CreateNote([FromBody] NoteDto dto)
         {
-            var note = await _repo.AddNoteAsync(dto.Name, dto.Content, dto.ParentFolderId);
+            var note = await _repo.AddNoteAsync(dto.Name, dto.Content, dto.ParentId);
             return CreatedAtAction(nameof(GetNote), new { id = note.Id }, note);
         }
 
@@ -74,7 +79,7 @@ namespace NoteApi.Controllers
                 var note = await _repo.GetNoteAsync(id);
                 note.Name = dto.Name;
                 note.Content = dto.Content;
-                note.ParentId = dto.ParentFolderId;
+                note.ParentId = dto.ParentId;
                 await _repo.SaveNoteAsync(note);
                 return NoContent();
             }

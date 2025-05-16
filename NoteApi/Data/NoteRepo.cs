@@ -122,5 +122,29 @@ namespace NoteApi.Data
 
             return roots;
         }
+        public async Task RenameNoteAsync(int id, string newName)
+        {
+            var note = await _context.Notes.FindAsync(id)
+                       ?? throw new KeyNotFoundException($"Note {id} not found");
+
+            // figure out parent folder’s path (if any)
+            string parentPath = string.Empty;
+            if (note.ParentId.HasValue)
+            {
+                parentPath = await _context.Folders
+                                           .Where(f => f.Id == note.ParentId)
+                                           .Select(f => f.Path)
+                                           .FirstOrDefaultAsync() ?? string.Empty;
+            }
+
+            note.Name = newName;
+            note.Path = string.IsNullOrWhiteSpace(parentPath)
+                            ? newName
+                            : $"{parentPath}/{newName}";
+
+            note.Touch();
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

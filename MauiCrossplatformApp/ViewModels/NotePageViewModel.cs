@@ -1,8 +1,10 @@
 ﻿using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Markdig;
 using MauiCrossplatformApp.Data.Interfaces;
+using MauiCrossplatformApp.Messenger;
 using MauiCrossplatformApp.Models;
 using MauiCrossplatformApp.Services;
 
@@ -102,6 +104,12 @@ namespace MauiCrossplatformApp.ViewModels
             await _noteService.UpdateNoteAsync(_currentNote.Id, _currentNote)
                              .ConfigureAwait(false);
             SaveCompleted = true;
+            UpdateShell();
+        }
+        private void UpdateShell()
+        {
+            WeakReferenceMessenger.Default.Send(new RefreshMessenger("refresh"));
+
         }
     }
 }

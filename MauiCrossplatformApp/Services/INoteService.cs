@@ -8,5 +8,6 @@
         Task<NoteDto> CreateNoteAsync(NoteDto dto);
         Task UpdateNoteAsync(int id, NoteDto dto);
         Task DeleteNoteAsync(int id);
+        Task RenameNoteAsync(int id, string newName);
     }
 }

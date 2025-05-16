@@ -2,13 +2,17 @@
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using MauiCrossplatformApp.Data;
 using MauiCrossplatformApp.Data.Interfaces;
+using MauiCrossplatformApp.Messenger;
 using MauiCrossplatformApp.Models;
 using MauiCrossplatformApp.Services;
 using MauiCrossplatformApp.ViewModels;
 using MauiCrossplatformApp.Views;
 
+namespace MauiCrossplatformApp.ViewModels;
 public partial class AppShellViewModel : ObservableObject
 {
     private readonly INoteService _service;
@@ -27,8 +31,13 @@ public partial class AppShellViewModel : ObservableObject
     public AppShellViewModel(INoteService service)
     {
         _service = service;
+
         // Only uses this for the initial load. Otherwise i need to declare Constructor async.
         ReloadCommand = new AsyncRelayCommand(LoadAsync);
+        WeakReferenceMessenger.Default.Register<RefreshMessenger>(this, (r, m) =>
+        {
+            _ = ReloadCommand.ExecuteAsync(null);
+        });
         _ = ReloadCommand.ExecuteAsync(null);
     }
 
@@ -85,9 +94,10 @@ public partial class AppShellViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task EditAsync()
+    private async Task OpenSettingsAsync()
     {
-        // WIP
+        await Shell.Current.GoToAsync(nameof(SettingsPage));
+        Shell.Current.FlyoutIsPresented = false;
     }
 
     [RelayCommand]

@@ -177,6 +177,31 @@ namespace MauiCrossplatformApp.Services
                 throw;
             }
         }
+        public async Task RenameNoteAsync(int id, string newName)
+        {
+            var uri = BuildUri($"{id}/name");
+            Debug.WriteLine($"[NoteService] PATCH {uri}");
+
+            try
+            {
+                // PATCH with the raw string payload
+                using var request = new HttpRequestMessage(HttpMethod.Patch, uri)
+                {
+                    Content = JsonContent.Create(newName, options: _serializerOptions)
+
+                };
+
+                using var response = await _client.SendAsync(request).ConfigureAwait(false);
+                Debug.WriteLine($"[NoteService] Response {(int)response.StatusCode} {response.ReasonPhrase}");
+
+                response.EnsureSuccessStatusCode();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[NoteService] Exception renaming note {id}: {ex.Message}");
+                throw;
+            }
+        }
     }
     public class LoggingHandler : DelegatingHandler
     {

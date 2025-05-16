@@ -56,7 +56,7 @@
                         TextColor="{AppThemeBinding Light=Black, Dark=White}"
                         IsVisible="{Binding IsFolder, Converter={StaticResource InvertBool}}"
                         Padding="{Binding Depth, Converter={StaticResource Indent}}"
-                        Command="{Binding OpenCommand}"
+                        Command="{Binding ShowMoreCommand}"
                         BackgroundColor="Transparent"
                         HorizontalOptions="Start" />
                 </VerticalStackLayout>
@@ -78,12 +78,24 @@
 
             <!-- ── header ─────────────────────────────────────────── -->
             <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
-                <Label Text="Note App"
-                       FontSize="22"
-                       FontAttributes="Bold"/>
-                <ImageButton Source="{FontImageSource Glyph='⚙', Size=22}"
-                             Command="{Binding OpenSettingsCmd}"
-                             BackgroundColor="Transparent"/>
+
+                <Label Text="Note App"
+           FontSize="22"
+           FontAttributes="Bold"
+           TextColor="{AppThemeBinding Light='#000000', Dark='#FFFFFF'}"
+           VerticalOptions="Center"/>
+
+                <ImageButton Grid.Column="1"
+                 HorizontalOptions="End"
+                 VerticalOptions="Center"
+                 BackgroundColor="Transparent"
+                 Command="{Binding OpenSettingsCommand}">
+                    <ImageButton.Source>
+                        <FontImageSource Glyph="⚙" Size="22"
+                             Color="{AppThemeBinding Light='#000000', Dark='#FFFFFF'}"/>
+                    </ImageButton.Source>
+                </ImageButton>
+
             </Grid>
 
             <!-- ── search box ─────────────────────────────────────── -->
@@ -106,13 +118,9 @@
                                    HorizontalOptions="Center"
                                    BackgroundColor="Black">
 
-                <!-- add / edit / expand -->
+                <!-- add / expand -->
                 <ImageButton Source="{FontImageSource Glyph='', Size=22}"
                  Command="{Binding NewNoteCommand}"
-                 BackgroundColor="Transparent"/>
-
-                <ImageButton Source="{FontImageSource Glyph='✎', Size=20}"
-                 Command="{Binding EditCommand}"
                  BackgroundColor="Transparent"/>
 
                 <ImageButton Source="{FontImageSource Glyph='⤢', Size=20}"

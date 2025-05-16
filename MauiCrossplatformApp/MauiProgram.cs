@@ -33,6 +33,7 @@ namespace MauiCrossplatformApp
             builder.Services.AddTransient<MainPageViewModel>();
             builder.Services.AddTransient<AppShellViewModel>();
             builder.Services.AddTransient<FileSystemItemViewModel>();
+            builder.Services.AddTransient<SettingsViewModel>();
             builder.Services.AddTransient<INoteService, NoteService>();
 
             builder.Services.AddSingleton<AppShell>();
