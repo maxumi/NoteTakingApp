@@ -37,12 +37,25 @@ namespace NoteApi.Data
 
         public async Task SaveNoteAsync(Note note)
         {
-            // if Id == 0 EF will treat as Add, otherwise Update
-            _context.Entry(note).State = note.Id == 0
-                ? EntityState.Added
-                : EntityState.Modified;
+            if (note.Id == 0)
+            {
+                // new note
+                note.Touch();
+                _context.Notes.Add(note);
+            }
+            else
+            {
+                // existing note: load the current entity so we can patch it
+                var existing = await _context.Notes.FindAsync(note.Id)
+                               ?? throw new KeyNotFoundException($"Note {note.Id} not found");
 
-            note.Touch();  // update UpdatedAt
+                // only overwrite the fields that actually changed
+                existing.Name = note.Name;
+                existing.Content = note.Content;
+                existing.ParentId = note.ParentId;   // preserve or change folder
+                existing.Touch();
+            }
+
             await _context.SaveChangesAsync();
         }
 

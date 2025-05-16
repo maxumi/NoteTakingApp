@@ -28,7 +28,13 @@ namespace MauiCrossplatformApp.Services
             };
         }
 
-
+        private Uri BuildUri(string relativePath = "")
+        {
+            var path = string.IsNullOrWhiteSpace(relativePath)
+                ? _base_Uri
+                : $"{_base_Uri.TrimEnd('/')}/{relativePath.TrimStart('/')}";
+            return new Uri(path);
+        }
         public async Task<List<FileSystemEntryDto>> GetTreeAsync()
         {
             var Items = new List<FileSystemEntryDto>();
@@ -42,6 +48,13 @@ namespace MauiCrossplatformApp.Services
                     string content = await response.Content.ReadAsStringAsync();
                     Items = JsonSerializer.Deserialize<List<FileSystemEntryDto>>(content, _serializerOptions);
                 }
+                else
+                {
+                    var errorText = await response.Content.ReadAsStringAsync();
+                    Debug.WriteLine($"[LoadItems] ERROR BODY: {errorText}");
+                    throw new HttpRequestException(
+                        $"Server returned {(int)response.StatusCode} {response.ReasonPhrase}");
+                }
             }
             catch (Exception ex)
             {
@@ -49,56 +62,121 @@ namespace MauiCrossplatformApp.Services
                 Debug.WriteLine($"\tERROR {0} {ex.Message}");
             }
             return Items;
-            // GET https://…/api/note/tree
         }
 
         public async Task<List<NoteDto>> GetAllNotesAsync()
         {
-            // GET https://…/api/note
-            return await _client
-                .GetFromJsonAsync<List<NoteDto>>("")
-                .ConfigureAwait(false);
+            var uri = BuildUri();
+            Debug.WriteLine($"[NoteService] GET {uri}");
+
+            try
+            {
+                using var response = await _client.GetAsync(uri).ConfigureAwait(false);
+                Debug.WriteLine($"[NoteService] Response {(int)response.StatusCode} {response.ReasonPhrase}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    return JsonSerializer.Deserialize<List<NoteDto>>(content, _serializerOptions)
+                           ?? new List<NoteDto>();
+                }
+                else
+                {
+                    var errorText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    Debug.WriteLine($"[NoteService] ERROR BODY: {errorText}");
+                    throw new HttpRequestException(
+                        $"Server returned {(int)response.StatusCode} {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[NoteService] Exception fetching notes: {ex.Message}");
+                return new List<NoteDto>();
+            }
         }
 
         public async Task<NoteDto> GetNoteAsync(int id)
         {
-            // GET https://…/api/note/{id}
-            return await _client
-                .GetFromJsonAsync<NoteDto>($"{id}")
-                .ConfigureAwait(false);
+            var uri = BuildUri(id.ToString());
+            Debug.WriteLine($"[NoteService] GET {uri}");
+
+            try
+            {
+                using var response = await _client.GetAsync(uri).ConfigureAwait(false);
+                Debug.WriteLine($"[NoteService] Response {(int)response.StatusCode} {response.ReasonPhrase}");
+
+                response.EnsureSuccessStatusCode();
+
+                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                return JsonSerializer.Deserialize<NoteDto>(content, _serializerOptions)
+                       ?? throw new JsonException("Failed to deserialize NoteDto");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[NoteService] Exception fetching note {id}: {ex.Message}");
+                throw;
+            }
         }
 
         public async Task<NoteDto> CreateNoteAsync(NoteDto dto)
         {
-            var response = await _client
-                .PostAsJsonAsync("", dto)
-                .ConfigureAwait(false);
+            var uri = BuildUri();
+            Debug.WriteLine($"[NoteService] POST {uri}");
 
-            response.EnsureSuccessStatusCode();
-            return await response.Content
-                                 .ReadFromJsonAsync<NoteDto>()
-                                 .ConfigureAwait(false);
+            try
+            {
+                using var response = await _client.PostAsJsonAsync(uri, dto, _serializerOptions).ConfigureAwait(false);
+                Debug.WriteLine($"[NoteService] Response {(int)response.StatusCode} {response.ReasonPhrase}");
+
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                return JsonSerializer.Deserialize<NoteDto>(content, _serializerOptions)
+                       ?? throw new JsonException("Failed to deserialize created NoteDto");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[NoteService] Exception creating note: {ex.Message}");
+                throw;
+            }
         }
 
         public async Task UpdateNoteAsync(int id, NoteDto dto)
         {
-            // PUT https://…/api/note/{id}
-            var response = await _client
-                .PutAsJsonAsync($"{id}", dto)
-                .ConfigureAwait(false);
+            var uri = BuildUri(id.ToString());
+            Debug.WriteLine($"[NoteService] PUT {uri}");
 
-            response.EnsureSuccessStatusCode();
+            try
+            {
+                using var response = await _client.PutAsJsonAsync(uri, dto, _serializerOptions).ConfigureAwait(false);
+                Debug.WriteLine($"[NoteService] Response {(int)response.StatusCode} {response.ReasonPhrase}");
+
+                response.EnsureSuccessStatusCode();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[NoteService] Exception updating note {id}: {ex.Message}");
+                throw;
+            }
         }
 
         public async Task DeleteNoteAsync(int id)
         {
-            var response = await _client
-                .DeleteAsync($"{id}")
-                .ConfigureAwait(false);
+            var uri = BuildUri(id.ToString());
+            Debug.WriteLine($"[NoteService] DELETE {uri}");
 
-            response.EnsureSuccessStatusCode();
+            try
+            {
+                using var response = await _client.DeleteAsync(uri).ConfigureAwait(false);
+                Debug.WriteLine($"[NoteService] Response {(int)response.StatusCode} {response.ReasonPhrase}");
+
+                response.EnsureSuccessStatusCode();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[NoteService] Exception deleting note {id}: {ex.Message}");
+                throw;
+            }
         }
-
     }
     public class LoggingHandler : DelegatingHandler
     {

@@ -4,17 +4,18 @@ using CommunityToolkit.Mvvm.Input;
 using Markdig;
 using MauiCrossplatformApp.Data.Interfaces;
 using MauiCrossplatformApp.Models;
+using MauiCrossplatformApp.Services;
 
 namespace MauiCrossplatformApp.ViewModels
 {
     public partial class NotePageViewModel : ObservableObject
     {
-        private readonly INoteRepository _repository;
-        private Note _currentNote = new();
+        private readonly INoteService _noteService;
+        private NoteDto _currentNote = new();
 
-        public NotePageViewModel(INoteRepository repository)
+        public NotePageViewModel(INoteService service)
         {
-            _repository = repository;
+            _noteService = service;
         }
 
         // 1) The ID that Shell passes in
@@ -32,9 +33,8 @@ namespace MauiCrossplatformApp.ViewModels
         private async Task LoadNoteAsync(int id)
         {
             if (id <= 0) return;
-            _currentNote = await _repository.GetNoteAsync(id)
-                            .ConfigureAwait(false)
-                         ?? new Note();
+            _currentNote = await _noteService.GetNoteAsync(id)
+                            .ConfigureAwait(false);
 
             // split _currentNote.Path → FolderPath + FileName
             if (!string.IsNullOrWhiteSpace(_currentNote.Path))
@@ -56,7 +56,6 @@ namespace MauiCrossplatformApp.ViewModels
             NoteContent = _currentNote.Content;
         }
 
-        // … the rest of your properties & commands stay exactly the same …
         public string Title
         {
             get
@@ -100,7 +99,7 @@ namespace MauiCrossplatformApp.ViewModels
             _currentNote.Content = NoteContent;
             _currentNote.Touch();
 
-            await _repository.SaveNoteAsync(_currentNote)
+            await _noteService.UpdateNoteAsync(_currentNote.Id, _currentNote)
                              .ConfigureAwait(false);
             SaveCompleted = true;
         }

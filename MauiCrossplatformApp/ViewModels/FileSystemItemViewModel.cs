@@ -23,11 +23,19 @@ namespace MauiCrossplatformApp.ViewModels
         [ObservableProperty] private int depth;
 
         private readonly INoteService _noteService;
-        public FileSystemItemViewModel(FileSystemEntryDto src)
+        public FileSystemItemViewModel(FileSystemEntryDto src, int depth = 0)
         {
             Source = src;
             Id = src.Id;
             Name = src.Name;
+            Depth = depth;
+            IsExpanded = true;
+
+            // recurse into children
+            foreach (var childDto in src.Children ?? Enumerable.Empty<FileSystemEntryDto>())
+            {
+                Children.Add(new FileSystemItemViewModel(childDto, depth + 1));
+            }
         }
 
         [RelayCommand]
