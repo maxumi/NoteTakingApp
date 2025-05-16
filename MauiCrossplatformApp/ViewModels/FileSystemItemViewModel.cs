@@ -1,4 +1,4 @@
-﻿// ViewModels/FileSystemItemViewModel.cs
+﻿﻿// ViewModels/FileSystemItemViewModel.cs
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -20,21 +20,22 @@ namespace MauiCrossplatformApp.ViewModels
 
         public FileSystemEntryDto Source { get; }
 
-        [ObservableProperty] private int depth;
+        [ObservableProperty]
+        public  int depth;
+
+
 
         private readonly INoteService _noteService;
-        public FileSystemItemViewModel(FileSystemEntryDto src, int depth = 0)
+        public FileSystemItemViewModel(FileSystemEntryDto src, INoteService noteService, int depth = 0)
         {
             Source = src;
             Id = src.Id;
             Name = src.Name;
             Depth = depth;
-            IsExpanded = true;
-
-            // recurse into children
+            _noteService = noteService;
             foreach (var childDto in src.Children ?? Enumerable.Empty<FileSystemEntryDto>())
             {
-                Children.Add(new FileSystemItemViewModel(childDto, depth + 1));
+                Children.Add(new FileSystemItemViewModel(childDto, noteService, depth + 1));
             }
         }
 

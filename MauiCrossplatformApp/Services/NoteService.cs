@@ -39,7 +39,7 @@ namespace MauiCrossplatformApp.Services
         {
             var Items = new List<FileSystemEntryDto>();
 
-            Uri uri = new Uri(_base_Uri+"tree");
+            Uri uri = new Uri(_base_Uri + "tree");
             try
             {
                 HttpResponseMessage response = await _client.GetAsync(uri);

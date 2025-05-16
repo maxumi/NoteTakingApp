@@ -8,11 +8,9 @@ namespace MauiCrossplatformApp.ViewModels;
 
 public partial class MainPageViewModel : ObservableObject
 {
-    private readonly INoteRepository _repo;
 
-    public MainPageViewModel(INoteRepository repo)
+    public MainPageViewModel()
     {
-        _repo = repo;
         //_ = InitialiseAsync();
     }
     /*
