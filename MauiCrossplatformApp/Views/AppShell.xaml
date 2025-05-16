@@ -8,6 +8,7 @@
     xmlns:conv="clr-namespace:MauiCrossplatformApp.Converters"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     Title="Note App"
+    
     FlyoutBehavior="Flyout">
 
     <!-- 🔹 shared resources -->

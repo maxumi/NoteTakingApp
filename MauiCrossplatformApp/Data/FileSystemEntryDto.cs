@@ -31,5 +31,6 @@
         public List<string> Tags { get; set; } = new();
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public void Touch() => UpdatedAt = DateTime.UtcNow;
     }
 }

@@ -11,13 +11,12 @@ using MauiCrossplatformApp.Views;
 
 public partial class AppShellViewModel : ObservableObject
 {
-    private readonly INoteRepository _repo;
     private readonly INoteService _service;
     // Master List, it holds all currently loaded notes and folders
     private readonly List<FileSystemItemViewModel> _roots = new();
 
     // Filtered List, it holds the currently displayed notes and folders
-    public ObservableCollection<FileSystemItemViewModel> TreeItems { get; } = [];
+    public ObservableCollection<FileSystemItemViewModel> TreeItems { get; } = new();
 
     [ObservableProperty] private string? searchText;
     [ObservableProperty] private bool expandNext = true;
@@ -25,9 +24,8 @@ public partial class AppShellViewModel : ObservableObject
     [ObservableProperty] private FileSystemItemViewModel? selected;
     public IAsyncRelayCommand ReloadCommand { get; }
 
-    public AppShellViewModel(INoteRepository repo, INoteService service)
+    public AppShellViewModel(INoteService service)
     {
-        _repo = repo;
         _service = service;
         // Only uses this for the initial load. Otherwise i need to declare Constructor async.
         ReloadCommand = new AsyncRelayCommand(LoadAsync);
@@ -43,7 +41,7 @@ public partial class AppShellViewModel : ObservableObject
         // pull the already‐built tree from the API
         var entries = await _service.GetTreeAsync();
         foreach (var dto in entries)
-            _roots.Add(new FileSystemItemViewModel(dto));
+            _roots.Add(new FileSystemItemViewModel(dto, _service));
 
         RefreshTree();
     }
